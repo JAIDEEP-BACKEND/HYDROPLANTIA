@@ -65,7 +65,9 @@
                     </svg>
                     Temperature
                 </h2>
-                <canvas id="temperatureChart"></canvas>
+                <div class="relative h-64">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
             </div>
 
             <!-- Soil Moisture Card -->
@@ -77,7 +79,9 @@
                     </svg>
                     Soil Moisture
                 </h2>
-                <canvas id="soilMoistureChart"></canvas>
+                <div class="relative h-64">
+                    <canvas id="soilMoistureChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -105,16 +109,14 @@
             return new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: [],
                     datasets: [{
                         label: label,
-                        data: [],
+                        data: [], // Data points will be objects {x: timestamp, y: value}
                         borderColor: borderColor,
                         backgroundColor: backgroundColor,
                         borderWidth: 2.5,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: borderColor,
                         pointRadius: 0,
                         pointHoverRadius: 6
                     }]
@@ -139,7 +141,7 @@
                             }
                         },
                         y: {
-                            beginAtZero: true,
+                            beginAtZero: false, // Allows the y-axis to autoscale
                             grid: {
                                 color: '#e5e7eb'
                             },
@@ -169,12 +171,13 @@
 
         // --- Firebase Data Listeners ---
         function addDataToChart(chart, data) {
-            const now = new Date();
-            chart.data.labels.push(now);
-            chart.data.datasets[0].data.push(data);
+            const now = Date.now();
+            
+            // Push data as an object for time-series chart
+            chart.data.datasets[0].data.push({x: now, y: data});
 
-            if (chart.data.labels.length > 20) {
-                chart.data.labels.shift();
+            // Limit the number of data points to 20 for performance
+            if (chart.data.datasets[0].data.length > 20) {
                 chart.data.datasets[0].data.shift();
             }
             chart.update();
@@ -198,8 +201,8 @@
 
         // --- Weather API Fetch ---
         async function getWeatherData() {
-            const lat = 31.6340; // Latitude for Amritsar
-            const lon = 74.8723; // Longitude for Amritsar
+            const lat = 30.7333; // Latitude for Chandigarh, India
+            const lon = 76.7794; // Longitude for Chandigarh, India
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`;
 
             try {
