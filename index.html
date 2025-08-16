@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro Plantia - ESP32 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-700">Hydro Plantia</h1>
+            <p class="text-gray-500 mt-2">Real-time monitoring for your smart garden</p>
+        </header>
+
+        <!-- Weather Section -->
+        <div id="weather-container" class="card mb-8 p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                </svg>
+                7-Day Weather Forecast
+            </h2>
+            <div id="weather-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 text-center">
+                <!-- Loading Skeleton -->
+                <div class="p-4 bg-gray-50 rounded-xl flex flex-col items-center justify-center animate-pulse" style="height: 150px;">
+                    <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
+                    <div class="w-20 h-4 bg-gray-300 rounded"></div>
+                    <div class="w-16 h-4 bg-gray-300 rounded mt-1"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor Data Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Temperature Card -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V4a1 1 0 00-1-1h-2a1 1 0 00-1 1v12a5 5 0 005 5h1a1 1 0 001-1v-2a1 1 0 00-1-1h-1z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h.01M15 12h.01M12 9h.01M12 15h.01" />
+                    </svg>
+                    Temperature
+                </h2>
+                <canvas id="temperatureChart"></canvas>
+            </div>
+
+            <!-- Soil Moisture Card -->
+            <div class="card p-6">
+                 <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 4a8 8 0 100 16 8 8 0 000-16z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12l.01-6" />
+                    </svg>
+                    Soil Moisture
+                </h2>
+                <canvas id="soilMoistureChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIdmbpwWmE26iH8l7T5Au2ziUKlKDgJ5U",
+            authDomain: "arduhub.firebaseapp.com",
+            databaseURL: "https://arduhub-default-rtdb.firebaseio.com",
+            projectId: "arduhub",
+            storageBucket: "arduhub.appspot.com",
+            messagingSenderId: "229042276706",
+            appId: "1:229042276706:web:b67270ae3c58bea248843b"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        // --- Chart.js Setup ---
+        function createChart(ctx, label, borderColor, backgroundColor) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        data: [],
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: borderColor,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'second',
+                                displayFormats: {
+                                    second: 'HH:mm:ss'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#9ca3af'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e5e7eb'
+                            },
+                            ticks: {
+                                color: '#9ca3af'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                }
+            });
+        }
+
+        const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+        const moistureCtx = document.getElementById('soilMoistureChart').getContext('2d');
+
+        const temperatureChart = createChart(tempCtx, 'Temperature (°C)', 'rgba(239, 68, 68, 1)', 'rgba(254, 202, 202, 0.5)');
+        const soilMoistureChart = createChart(moistureCtx, 'Moisture (%)', 'rgba(59, 130, 246, 1)', 'rgba(191, 219, 254, 0.5)');
+
+        // --- Firebase Data Listeners ---
+        function addDataToChart(chart, data) {
+            const now = new Date();
+            chart.data.labels.push(now);
+            chart.data.datasets[0].data.push(data);
+
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            chart.update();
+        }
+
+        const tempRef = database.ref('esp32/temperature');
+        tempRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data !== null) {
+                addDataToChart(temperatureChart, data);
+            }
+        });
+
+        const moistureRef = database.ref('esp32/soil_moisture');
+        moistureRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data !== null) {
+                addDataToChart(soilMoistureChart, data);
+            }
+        });
+
+        // --- Weather API Fetch ---
+        async function getWeatherData() {
+            const lat = 31.6340; // Latitude for Amritsar
+            const lon = 74.8723; // Longitude for Amritsar
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayWeatherData(data);
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                document.getElementById('weather-content').innerHTML = '<p class="text-red-500 col-span-full">Could not fetch weather data.</p>';
+            }
+        }
+        
+        function getWeatherIcon(weathercode) {
+            if (weathercode === 0) return '☀️'; // Clear sky
+            if (weathercode > 0 && weathercode < 4) return '⛅️'; // Mainly clear, partly cloudy, and overcast
+            if (weathercode > 44 && weathercode < 49) return '🌫️'; // Fog
+            if (weathercode > 50 && weathercode < 68) return '🌧️'; // Drizzle and Rain
+            if (weathercode > 70 && weathercode < 78) return '❄️'; // Snowfall
+            if (weathercode > 79 && weathercode < 83) return '🌦️'; // Rain showers
+            if (weathercode > 84 && weathercode < 87) return '🌨️'; // Snow showers
+            if (weathercode > 94) return '⛈️'; // Thunderstorm
+            return '❓';
+        }
+
+        function displayWeatherData(data) {
+            const weatherContent = document.getElementById('weather-content');
+            weatherContent.innerHTML = ''; // Clear loading state
+
+            if (data && data.daily) {
+                const daily = data.daily;
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(daily.time[i]);
+                    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+                    const weathercode = daily.weathercode[i];
+                    const maxTemp = Math.round(daily.temperature_2m_max[i]);
+                    const minTemp = Math.round(daily.temperature_2m_min[i]);
+
+                    const weatherCard = `
+                        <div class="p-4 bg-gray-50 rounded-xl flex flex-col items-center justify-center space-y-1">
+                            <p class="font-semibold text-lg text-gray-600">${day}</p>
+                            <p class="text-4xl my-1">${getWeatherIcon(weathercode)}</p>
+                            <p class="text-md font-medium text-gray-700">${maxTemp}° / <span class="text-gray-500">${minTemp}°</span></p>
+                        </div>
+                    `;
+                    weatherContent.innerHTML += weatherCard;
+                }
+            } else {
+                 weatherContent.innerHTML = '<p class="text-red-500 col-span-full">Weather data format is incorrect.</p>';
+            }
+        }
+
+        // Initial call to fetch weather data
+        getWeatherData();
+    </script>
+</body>
+</html>
