@@ -79,23 +79,7 @@
                      <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4a8 8 0 100 16 8 8 0 000-16z" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 12l.01-6" /></svg>
                         Soil Moisture
-                    </h2>Uncaught SyntaxError: Unexpected identifier 'console'Understand this error
-/favicon.ico:1 
-            
-            
-           Failed to load resource: the server responded with a status of 404 ()Understand this error
-(index):106 Uncaught ReferenceError: sendServoCommand is not defined
-    at HTMLButtonElement.onclick ((index):106:166)
-onclick @ (index):106Understand this error
-(index):107 Uncaught ReferenceError: sendServoCommand is not defined
-    at HTMLButtonElement.onclick ((index):107:165)
-onclick @ (index):107Understand this error
-(index):123 Uncaught ReferenceError: sendServoCommand is not defined
-    at HTMLButtonElement.onclick ((index):123:167)
-onclick @ (index):123Understand this error
-(index):122 Uncaught ReferenceError: sendServoCommand is not defined
-    at HTMLButtonElement.onclick ((index):122:170)
-onclick @ (index):122Understand this error
+                    </h2>
                     <div class="relative h-80"><canvas id="soilMoistureChart"></canvas></div>
                 </div>
             </div>
@@ -210,43 +194,7 @@ onclick @ (index):122Understand this error
             console.log(`Sending command: ${command}`);
             // All commands are sent to a single Firebase location
             const path = 'esp8266/command';
-            database.ref(path).set(command)<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hydro Plantia - ESP32 Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-        }
-        .card {
-            background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .btn {
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        .btn:active {
-            transform: scale(0.95);
-        }
-    </style>
-</head>
-<body class="text-gray-800">
-
+            database.ref(path).set(command)
                 .then(() => console.log('Command sent successfully!'))
                 .catch((error) => console.error('Error sending command:', error));
         }
@@ -261,7 +209,7 @@ onclick @ (index):122Understand this error
                 const response = await fetch(url);
                 const data = await response.json();
                 displayWeatherData(data);
-            } catch (error) { // <-- FIX: Added curly braces here
+            } catch (error) {
                 console.error('Error fetching weather data:', error);
                 document.getElementById('weather-content').innerHTML = '<p class="text-red-500 col-span-full">Could not fetch weather data.</p>';
             }
