@@ -3,124 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hydro Plantia - ESP32 Dashboard</title>
+    <title>Hydro Plantia Pro - 2-Zone Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-        }
-        .card {
-            background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .btn {
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        .btn:active {
-            transform: scale(0.95);
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04); transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.08); }
+        .btn-press { transition: transform 0.1s; }
+        .btn-press:active { transform: scale(0.96); }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="text-slate-900">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <!-- Header -->
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-700">Hydro Plantia</h1>
-            <p class="text-gray-500 mt-2">Real-time monitoring and control for your smart garden</p>
+    <div id="motion-alert-banner" class="hidden bg-red-600 text-white text-center py-3 font-bold sticky top-0 z-50 shadow-lg">
+        SECURITY ALERT: MOTION DETECTED!
+    </div>
+
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-slate-800">Hydro <span class="text-emerald-600">Plantia</span></h1>
+                <p class="text-slate-500 font-medium">Dual-Zone Intelligence Hub</p>
+            </div>
         </header>
 
-        <!-- Weather Section -->
-        <div id="weather-container" class="card mb-8 p-6">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-                7-Day Weather Forecast
-            </h2>
-            <div id="weather-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 text-center">
-                <!-- Loading Skeleton -->
-                <div class="p-4 bg-gray-50 rounded-xl flex flex-col items-center justify-center animate-pulse" style="height: 150px;">
-                    <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-                    <div class="w-20 h-4 bg-gray-300 rounded"></div>
-                    <div class="w-16 h-4 bg-gray-300 rounded mt-1"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            
-            <!-- Sensor Data Section (Spans 2 columns on XL screens) -->
-            <div class="xl:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Temperature Card -->
-                <div class="card p-6">
-                    <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V4a1 1 0 00-1-1h-2a1 1 0 00-1 1v12a5 5 0 005 5h1a1 1 0 001-1v-2a1 1 0 00-1-1h-1z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h.01M15 12h.01M12 9h.01M12 15h.01" /></svg>
-                        Temperature
-                    </h2>
-                    <div class="relative h-80"><canvas id="temperatureChart"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Sensor Data (Left) -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card p-6 border-l-4 border-red-500">
+                        <h3 class="text-slate-500 text-xs font-black uppercase mb-1">Temperature (°C)</h3>
+                        <div class="h-48"><canvas id="temperatureChart"></canvas></div>
+                    </div>
+                    <div class="glass-card p-6 border-l-4 border-blue-500">
+                        <h3 class="text-slate-500 text-xs font-black uppercase mb-1">Soil Moisture (%)</h3>
+                        <div class="h-48"><canvas id="soilMoistureChart"></canvas></div>
+                    </div>
                 </div>
 
-                <!-- Soil Moisture Card -->
-                <div class="card p-6">
-                     <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4a8 8 0 100 16 8 8 0 000-16z" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 12l.01-6" /></svg>
-                        Soil Moisture
-                    </h2>
-                    <div class="relative h-80"><canvas id="soilMoistureChart"></canvas></div>
+                <!-- Weather -->
+                <div class="glass-card p-6">
+                    <h2 class="text-lg font-bold text-slate-700 mb-4 uppercase">7-Day Forecast</h2>
+                    <div id="weather-content" class="grid grid-cols-4 lg:grid-cols-7 gap-2"></div>
                 </div>
             </div>
 
-            <!-- Servo Controller Card (Spans 1 column on XL screens) -->
-            <div class="card p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-600 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    WATER SEPARATOR
-                </h2>
-                <div class="space-y-4">
-                    <!-- Servo 1 -->
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <h3 class="font-semibold text-gray-700 mb-2">SECTION 1</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="sendServoCommand('open1')" class="btn w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">OPEN</button>
-                            <button onclick="sendServoCommand('close1')" class="btn w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">CLOSE</button>
-                        </div>
+            <!-- Controls (Right) -->
+            <div class="space-y-6">
+                <!-- Security Status -->
+                <div id="security-card" class="glass-card p-6 border-l-4 border-emerald-500">
+                    <div class="flex items-center gap-3">
+                        <div id="security-indicator" class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span id="security-text" class="font-bold text-emerald-600 uppercase tracking-widest text-sm">System Secure</span>
                     </div>
-                    <!-- Servo 2 -->
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <h3 class="font-semibold text-gray-700 mb-2">SECTION 2</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="sendServoCommand('open2')" class="btn w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">OPEN</button>
-                            <button onclick="sendServoCommand('close2')" class="btn w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">CLOSE</button>
+                </div>
+
+                <!-- 2-Servo Control Panel -->
+                <div class="glass-card p-6 border-b-4 border-emerald-500">
+                    <h2 class="text-xl font-bold text-slate-700 mb-6 uppercase tracking-tight">Water Separator</h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Section 1 (D1) -->
+                        <div class="bg-slate-50 p-4 rounded-2xl">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Section 1 (Pin D1)</span>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <button onclick="sendServoCommand('open1')" class="btn-press py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase">Open</button>
+                                <button onclick="sendServoCommand('close1')" class="btn-press py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs uppercase">Close</button>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Servo 3 -->
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <h3 class="font-semibold text-gray-700 mb-2">SECTION 3</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="sendServoCommand('open3')" class="btn w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">OPEN</button>
-                            <button onclick="sendServoCommand('close3')" class="btn w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">CLOSE</button>
+
+                        <!-- Section 2 (D2) -->
+                        <div class="bg-slate-50 p-4 rounded-2xl">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Section 2 (Pin D2)</span>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <button onclick="sendServoCommand('open2')" class="btn-press py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase">Open</button>
+                                <button onclick="sendServoCommand('close2')" class="btn-press py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs uppercase">Close</button>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Master Controls -->
-                    <div class="p-4 bg-gray-800 text-white rounded-lg">
-                        <h3 class="font-semibold mb-2">Master Controls</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="sendServoCommand('openall')" class="btn w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg">OPEN ALL</button>
-                            <button onclick="sendServoCommand('closeall')" class="btn w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">CLOSE ALL</button>
+
+                        <!-- Master Panel -->
+                        <div class="bg-slate-900 p-5 rounded-2xl mt-6">
+                            <div class="grid grid-cols-1 gap-3">
+                                <button onclick="sendServoCommand('openall')" class="btn-press w-full bg-emerald-500 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest">Deploy All Zones</button>
+                                <button onclick="sendServoCommand('closeall')" class="btn-press w-full bg-slate-700 text-slate-300 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Secure All Zones</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +100,6 @@
     </div>
 
     <script>
-        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyCIdmbpwWmE26iH8l7T5Au2ziUKlKDgJ5U",
             authDomain: "arduhub.firebaseapp.com",
@@ -140,102 +110,111 @@
             appId: "1:229042276706:web:b67270ae3c58bea248843b"
         };
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- Chart.js Setup ---
-        function createChart(ctx, label, borderColor, backgroundColor) {
+        // Security Listener
+        database.ref('esp32/motion_active').on('value', snap => {
+            const isMotion = snap.val();
+            const banner = document.getElementById('motion-alert-banner');
+            const indicator = document.getElementById('security-indicator');
+            const text = document.getElementById('security-text');
+            
+            if (isMotion) {
+                banner.classList.remove('hidden');
+                indicator.className = "w-3 h-3 rounded-full bg-red-500 animate-ping";
+                text.innerText = "Motion Detected!";
+                text.className = "font-bold text-red-600 uppercase tracking-widest text-sm";
+            } else {
+                banner.classList.add('hidden');
+                indicator.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse";
+                text.innerText = "System Secure";
+                text.className = "font-bold text-emerald-600 uppercase tracking-widest text-sm";
+            }
+        });
+
+        // Charts initialization
+        function createChart(ctx, label, color, bgColor) {
             return new Chart(ctx, {
                 type: 'line',
-                data: { datasets: [{ label: label, data: [], borderColor: borderColor, backgroundColor: backgroundColor, borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6 }] },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: {
-                        x: { type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } }, grid: { display: false }, ticks: { color: '#9ca3af' } },
-                        y: { beginAtZero: false, grid: { color: '#e5e7eb' }, ticks: { color: '#9ca3af' } }
+                data: { 
+                    datasets: [{ 
+                        label: label,
+                        data: [], 
+                        borderColor: color, 
+                        backgroundColor: bgColor,
+                        borderWidth: 3, 
+                        fill: true, 
+                        tension: 0.4, 
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        x: { 
+                            type: 'time',
+                            time: {
+                                unit: 'second',
+                                displayFormats: { second: 'HH:mm:ss' }
+                            },
+                            grid: { display: false }, 
+                            ticks: { color: '#94a3b8', font: { weight: '600', size: 10 } }
+                        }, 
+                        y: { 
+                            grid: { color: '#f1f5f9' }, 
+                            ticks: { color: '#94a3b8', font: { weight: '600', size: 10 } } 
+                        } 
+                    }, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
                     },
-                    plugins: { legend: { display: false } },
-                    interaction: { intersect: false, mode: 'index' },
+                    interaction: { intersect: false, mode: 'index' }
                 }
             });
         }
 
-        const tempCtx = document.getElementById('temperatureChart').getContext('2d');
-        const moistureCtx = document.getElementById('soilMoistureChart').getContext('2d');
-        const temperatureChart = createChart(tempCtx, 'Temperature (°C)', 'rgba(239, 68, 68, 1)', 'rgba(254, 202, 202, 0.5)');
-        const soilMoistureChart = createChart(moistureCtx, 'Moisture (%)', 'rgba(59, 130, 246, 1)', 'rgba(191, 219, 254, 0.5)');
+        const tempChart = createChart(document.getElementById('temperatureChart').getContext('2d'), 'Temp', '#f43f5e', 'rgba(244, 63, 94, 0.1)');
+        const moistureChart = createChart(document.getElementById('soilMoistureChart').getContext('2d'), 'Moisture', '#3b82f6', 'rgba(59, 130, 246, 0.1)');
 
-        // --- Firebase Data Listeners ---
-        function addDataToChart(chart, data) {
-            const now = new Date();
+        // Data Throttling State
+        let currentTemp = null;
+        let currentMoisture = null;
+
+        function updateChart(chart, val) {
             const chartData = chart.data.datasets[0].data;
-            chartData.push({ x: now, y: data });
-            if (chartData.length > 20) { chartData.shift(); }
+            chartData.push({ x: new Date(), y: val });
+            if (chartData.length > 25) chartData.shift();
             chart.update('none');
         }
 
-        const tempRef = database.ref('esp32/temperature');
-        tempRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data !== null) { addDataToChart(temperatureChart, data); }
-        });
+        // Firebase Listeners (Update current state only)
+        database.ref('esp32/temperature').on('value', s => currentTemp = s.val());
+        database.ref('esp32/soil_moisture').on('value', s => currentMoisture = s.val());
 
-        const moistureRef = database.ref('esp32/soil_moisture');
-        moistureRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data !== null) { addDataToChart(soilMoistureChart, data); }
-        });
+        // 5-Second Interval for Graph Generation
+        setInterval(() => {
+            if (currentTemp !== null) updateChart(tempChart, currentTemp);
+            if (currentMoisture !== null) updateChart(moistureChart, currentMoisture);
+        }, 5000);
 
-        // --- Servo Control Function ---
-        function sendServoCommand(command) {
-            console.log(`Sending command: ${command}`);
-            // All commands are sent to a single Firebase location
-            const path = 'esp8266/command';
-            database.ref(path).set(command)
-                .then(() => console.log('Command sent successfully!'))
-                .catch((error) => console.error('Error sending command:', error));
+        function sendServoCommand(cmd) {
+            database.ref('esp8266/command').set(cmd);
         }
 
-        // --- Weather API Fetch ---
         async function getWeatherData() {
-            const lat = 30.7046; // Latitude for Sahibzada Ajit Singh Nagar
-            const lon = 76.7179; // Longitude for Sahibzada Ajit Singh Nagar
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`;
-
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-                displayWeatherData(data);
-            } catch (error) {
-                console.error('Error fetching weather data:', error);
-                document.getElementById('weather-content').innerHTML = '<p class="text-red-500 col-span-full">Could not fetch weather data.</p>';
-            }
-        }
-        
-        function getWeatherIcon(weathercode) {
-            if (weathercode === 0) return '☀️'; if (weathercode > 0 && weathercode < 4) return '⛅️'; if (weathercode > 44 && weathercode < 49) return '🌫️'; if (weathercode > 50 && weathercode < 68) return '🌧️'; if (weathercode > 70 && weathercode < 78) return '❄️'; if (weathercode > 79 && weathercode < 83) return '🌦️'; if (weathercode > 84 && weathercode < 87) return '🌨️'; if (weathercode > 94) return '⛈️'; return '❓';
-        }
-
-        function displayWeatherData(data) {
-            const weatherContent = document.getElementById('weather-content');
-            weatherContent.innerHTML = ''; 
-            if (data && data.daily) {
-                const daily = data.daily;
-                for (let i = 0; i < 7; i++) {
-                    const date = new Date(daily.time[i]);
-                    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-                    const weathercode = daily.weathercode[i];
-                    const maxTemp = Math.round(daily.temperature_2m_max[i]);
-                    const minTemp = Math.round(daily.temperature_2m_min[i]);
-                    const weatherCard = `<div class="p-4 bg-gray-50 rounded-xl flex flex-col items-center justify-center space-y-1"><p class="font-semibold text-lg text-gray-600">${day}</p><p class="text-4xl my-1">${getWeatherIcon(weathercode)}</p><p class="text-md font-medium text-gray-700">${maxTemp}° / <span class="text-gray-500">${minTemp}°</span></p></div>`;
-                    weatherContent.innerHTML += weatherCard;
-                }
-            } else {
-                 weatherContent.innerHTML = '<p class="text-red-500 col-span-full">Weather data format is incorrect.</p>';
-            }
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=30.70&longitude=76.71&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
+                const data = await res.json();
+                const container = document.getElementById('weather-content');
+                data.daily.time.forEach((t, i) => {
+                    const day = new Date(t).toLocaleDateString('en-US', { weekday: 'short' });
+                    container.innerHTML += `<div class="bg-white p-2 rounded-xl text-center border border-slate-100 shadow-sm"><p class="text-[8px] font-black text-slate-400 uppercase">${day}</p><p class="text-lg my-1">${data.daily.weathercode[i] < 4 ? '☀️' : '🌧️'}</p><p class="text-[10px] font-bold">${Math.round(data.daily.temperature_2m_max[i])}°</p></div>`;
+                });
+            } catch (e) { console.error(e); }
         }
         getWeatherData();
     </script>
