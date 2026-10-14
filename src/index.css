@@ -1,0 +1,291 @@
+:root {
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  /* Soft UI Evolution Color Palette */
+  --bg-canvas: #eef3f8;
+  --bg-card: #f8fafc;
+  --bg-inset: #eaf0f6;
+  --bg-surface-raised: #fbfdff;
+
+  /* Text & Hierarchy with 4.5:1+ WCAG Contrast */
+  --text-main: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  /* Canal Water & Agriculture Accent Tones */
+  --water-blue-deep: #0284c7;
+  --water-blue-mid: #0ea5e9;
+  --water-blue-soft: #38bdf8;
+  --water-blue-tint: #e0f2fe;
+
+  --nature-green-deep: #059669;
+  --nature-green-mid: #10b981;
+  --nature-green-soft: #34d399;
+  --nature-green-tint: #ecfdf5;
+
+  --thermal-rose-deep: #e11d48;
+  --thermal-rose-mid: #f43f5e;
+  --thermal-rose-soft: #fb7185;
+  --thermal-rose-tint: #fff1f2;
+
+  --amber-warm: #d97706;
+  --amber-soft: #f59e0b;
+  --amber-tint: #fef3c7;
+
+  /* Soft UI Shadows - Multi-Layer Evolved Depth */
+  --shadow-soft-raised: 8px 8px 18px rgba(166, 182, 204, 0.45), -8px -8px 18px #ffffff;
+  --shadow-soft-card: 10px 10px 24px rgba(166, 182, 204, 0.4), -10px -10px 24px #ffffff;
+  --shadow-soft-hover: 12px 12px 28px rgba(155, 173, 198, 0.5), -12px -12px 28px #ffffff;
+  --shadow-soft-inset: inset 4px 4px 8px rgba(166, 182, 204, 0.38), inset -4px -4px 8px #ffffff;
+  --shadow-soft-btn: 5px 5px 12px rgba(166, 182, 204, 0.4), -5px -5px 12px #ffffff;
+  --shadow-soft-btn-active: inset 3px 3px 6px rgba(166, 182, 204, 0.5), inset -3px -3px 6px #ffffff;
+
+  /* Glowing Accent Shadows */
+  --glow-water: 0 8px 20px -4px rgba(14, 165, 233, 0.35);
+  --glow-green: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+  --glow-rose: 0 8px 20px -4px rgba(244, 63, 94, 0.35);
+
+  /* Borders for crisp definition */
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.85);
+  --border-inset: 1px solid rgba(203, 213, 225, 0.5);
+  --border-divider: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Base Soft UI Classes */
+.soft-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft-card);
+  border: var(--border-subtle);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.soft-card:hover {
+  box-shadow: var(--shadow-soft-hover);
+}
+
+.soft-well {
+  background: var(--bg-inset);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft-inset);
+  border: var(--border-inset);
+}
+
+.soft-button {
+  font-family: var(--font-main);
+  font-weight: 600;
+  border-radius: 12px;
+  border: var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-soft-btn);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  user-select: none;
+}
+
+.soft-button:hover {
+  color: var(--text-main);
+  transform: translateY(-1px);
+  box-shadow: 7px 7px 16px rgba(166, 182, 204, 0.45), -7px -7px 16px #ffffff;
+}
+
+.soft-button:active, .soft-button.active {
+  box-shadow: var(--shadow-soft-btn-active);
+  transform: translateY(1px);
+}
+
+.soft-button:focus-visible {
+  outline: 2px solid var(--water-blue-mid);
+  outline-offset: 2px;
+}
+
+/* Primary Green / Nature Button */
+.soft-button-emerald {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 4px 4px 12px rgba(16, 185, 129, 0.35), -3px -3px 8px #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.soft-button-emerald:hover {
+  background: linear-gradient(135deg, #34d399, #059669);
+  color: #ffffff;
+  box-shadow: 6px 6px 16px rgba(16, 185, 129, 0.45), -4px -4px 12px #ffffff;
+}
+
+.soft-button-emerald:active, .soft-button-emerald.active {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+}
+
+/* Water / Blue Button */
+.soft-button-blue {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: #ffffff;
+  box-shadow: 4px 4px 12px rgba(14, 165, 233, 0.35), -3px -3px 8px #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.soft-button-blue:hover {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  color: #ffffff;
+  box-shadow: 6px 6px 16px rgba(14, 165, 233, 0.45), -4px -4px 12px #ffffff;
+}
+
+.soft-button-blue:active, .soft-button-blue.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+}
+
+/* Secondary / Stop Button */
+.soft-button-stop {
+  background: linear-gradient(135deg, #64748b, #475569);
+  color: #ffffff;
+  box-shadow: 4px 4px 12px rgba(71, 85, 105, 0.3), -3px -3px 8px #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.soft-button-stop:hover {
+  background: linear-gradient(135deg, #94a3b8, #475569);
+  box-shadow: 6px 6px 16px rgba(71, 85, 105, 0.4), -4px -4px 12px #ffffff;
+}
+
+.soft-button-stop:active {
+  background: linear-gradient(135deg, #334155, #1e293b);
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.35), inset -2px -2px 4px rgba(255, 255, 255, 0.15);
+}
+
+/* Tactile Pill Badges */
+.soft-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-soft-btn);
+  border: var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.soft-pill-inset {
+  box-shadow: var(--shadow-soft-inset);
+  background: var(--bg-inset);
+  border: var(--border-inset);
+}
+
+/* Animations for Weather & Water */
+
+@keyframes waterFlowWave {
+  0% { background-position: 0 0; }
+  100% { background-position: 80px 0; }
+}
+
+@keyframes waterFlowVertical {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 60px; }
+}
+
+@keyframes rainStreak {
+  0% { transform: translateY(-12px) scaleY(0.7); opacity: 0; }
+  40% { opacity: 1; transform: translateY(6px) scaleY(1); }
+  90% { opacity: 0.9; transform: translateY(22px) scaleY(1.1); }
+  100% { transform: translateY(28px) scaleY(0.4); opacity: 0; }
+}
+
+@keyframes rainSplashRing {
+  0% { transform: scale(0.2); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes sunRaysRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes sunPulseGlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5)); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.85)); }
+}
+
+@keyframes cloudDriftSmooth {
+  0%, 100% { transform: translateX(0px); }
+  50% { transform: translateX(6px); }
+}
+
+@keyframes thunderFlash {
+  0%, 90%, 94%, 98%, 100% { opacity: 0; transform: scale(0.95); }
+  92%, 96% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 10px #facc15); }
+}
+
+@keyframes snowflakeTumble {
+  0% { transform: translateY(-8px) rotate(0deg); opacity: 0; }
+  30% { opacity: 0.9; }
+  100% { transform: translateY(24px) rotate(180deg); opacity: 0; }
+}
+
+@keyframes gateSlide {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-16px); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+/* Water canal flowing background pattern */
+.water-flow-active {
+  background: repeating-linear-gradient(
+    90deg,
+    #0284c7 0px,
+    #0ea5e9 15px,
+    #38bdf8 25px,
+    #0284c7 40px
+  );
+  background-size: 80px 100%;
+  animation: waterFlowWave 1.4s linear infinite;
+}
+
+.water-flow-inactive {
+  background: #94a3b8;
+  opacity: 0.35;
+}
+
+/* Layout container */
+.app-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 16px 12px 36px;
+  }
+}
